@@ -1,15 +1,27 @@
 #include <iostream>
-
-    ? zaladujSlowaZBazy(){
-    // Funkcja ladujaca zasob slow z bazy
-    // jeszcze nie wiem jaki typ danych
+#include <string>
+#include <cstdlib>
+#include <ctime>
+#include <experimental/random>
+#include <vector>
+    std::vector<std::string> zaladujSlowaZBazy(){
+    using namespace std;
+        // Funkcja ladujaca zasob slow z bazy
+        //
+        // chwilowo na sztywno, wciaz potrzebna obsluga pliku i funkcja losujaca
+    vector<string> slowa = {"samochod","telefon", "grzegrzolka"};
+    return slowa;
 }
 
-    ? wylosujSlowo(auto slowa){
-    //funkcja losujaca slowo z wczytanej bazy
+    std::string wylosujSlowo(/*std::vector<std::string> slowa*/){
+        //funkcja losujaca slowo z wczytanej bazy
+//    srand(time(0));
+        std::vector<std::string> slowa = zaladujSlowaZBazy();
+        return slowa[std::experimental::randint(0, sizeof(slowa)-1)];   //experymentalna funkcja randint zwraca pseudolosowa wartosc z przedzialu domknietego
 }
 
-    void graj(? slowo){
+    void graj(){
+    std::string slowo = wylosujSlowo();
     //Jakas petla zaporowa do obslugi gry
     //w petli powinno byc cos, co bedzie kontrolowalo stopien odgadniecia slowa
     //(
@@ -27,8 +39,6 @@
 
 
 int main() {
-    ? slowa = zaladujSlowaZBazy();
-    ? slowo = wylosujSlowo(slowa);
     graj();
 
 

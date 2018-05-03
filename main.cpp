@@ -3,21 +3,44 @@
 #include <cstdlib>
 #include <ctime>
 #include <vector>
-    std::vector<std::string> zaladujSlowaZBazy(){
-    using namespace std;
-        // Funkcja ladujaca zasob slow z bazy
-        //
-        // chwilowo na sztywno, wciaz potrzebna obsluga pliku i funkcja losujaca
-    vector<string> slowa = {"samochod","telefon", "grzegrzolka"};
-    return slowa;
+#include <fstream>
+#include <random>
+#include <chrono>
+
+std::vector<std::string> zaladujSlowaZBazy(){
+        using namespace std;
+//        deklaracje
+        vector<string> slowa;
+        ifstream plik;
+        string wiersz;
+
+//        obsluga pliku i zapisanie w bazie
+        plik.open("../slowa/slowa.txt");
+        while (getline(plik, wiersz )){
+            slowa.push_back(wiersz);
+        }
+        plik.close();
+
+        return slowa;
 }
 
     std::string wylosujSlowo(/*std::vector<std::string> slowa*/){
         //funkcja losujaca slowo z wczytanej bazy
-        srand(time(nullptr));
         std::vector<std::string> slowa = zaladujSlowaZBazy();
-//        return slowa.at(1);
-        return slowa.at(rand() % slowa.size());   //randint jest wspierany od c++14 :(, więc jednak standardowe rozwiązanie
+
+//        rand
+/*        srand(time(nullptr));
+        int losowa = rand() % slowa.size();*/
+
+//        nowszt i podobno lepszy system generowania liczb pseudolosowych dla c++11
+        long long int seed = std::chrono::system_clock::now().time_since_epoch().count();
+        std::default_random_engine generator (seed);
+        std::uniform_int_distribution<int> distribution(0, slowa.size());
+        int losowa = distribution(generator);
+
+        std::cout<<losowa<<std::endl<<slowa.size()<<std::endl;
+        std::string wylosowane = slowa.at(losowa);
+        return wylosowane;   //randint jest wspierany od c++14 :(, więc jednak standardowe rozwiązanie
 }
 
     void graj() {
@@ -31,7 +54,7 @@
 
 //    losowanie slowa i zamaiana na vector vectorow charow z informacja o stanie w drugim wymiarze
         std::string slowo = wylosujSlowo();
-        std::cout << slowo << std::endl;       //tylko na chwile, aby sprawdzic poprawnosc funkcji losujacej
+//        std::cout << slowo << std::endl;       //tylko na chwile, aby sprawdzic poprawnosc funkcji losujacej
         std::vector<char> slowoZnaki(slowo.begin(), slowo.end());
         std::vector<std::vector<char>> slowoZnakiOdgadniete;
         for (auto litera : slowoZnaki) {
@@ -127,7 +150,7 @@
         if (odgadniete) {
             std::cout << "Brawo! odgadniete slowo: " << slowo << "." << std::endl;
         } else {
-            std::cout << "Niestety, nie udało Ci się. Słowo, które próbowałeś odgadnąć to: " << slowo << '.'
+            std::cout << "Niestety, nie udalo Ci sie. Slowo, ktore probowales odgadnac to: " << slowo << '.'
                       << std::endl;
         }
         std::cout << "Czy chcesz zagrac jeszcze raz?\nt -> tak\nn -> nie" << std::endl;

@@ -24,6 +24,7 @@ public:
         stan = false;
     }
 
+//    funkcja dajaca dostep tylko gdy znak jest odgadniety
     char ustalZnakZeStanem(){
         if(stan){
             return znak;
@@ -33,6 +34,13 @@ public:
         }
     }
 
+/*    funkcja altualizuje stan w oparciu o wprowadzona litere i
+ * jezeli nie byla odgadnieta, a podana jest taka sama jak przechowywana,
+ * to stan jest zmieniany a funkcja zwraca 1.
+ * Uzywajaca tej funkcji w petli sprawdzajacej trafienia
+ * jako składnika dodawania mozna latwo sprawdzic ile podanych liter bylo
+ * w badanym slowie
+ * */
     int aktualizujStan(char litera){
         if(!stan && znak == litera){
                 stan = true;
@@ -55,34 +63,31 @@ std::vector<std::string> zaladujSlowaZBazy(){
 
 //        obsluga pliku i zapisanie w bazie
         plik.open("../slowa/slowaMSDOS.txt");
+
+//        petla wpychajaca kazdy wiersz pliku za poprzednim
         while (getline(plik, wiersz )){
-            slowa.push_back(wiersz);
+            slowa.emplace_back(wiersz);
         }
         plik.close();
 
         return slowa;
 }
 
-//  funkcja losujaca slowo z wczytanej bazy
-    std::string wylosujSlowo(/*std::vector<std::string> slowa*/){
+//  funkcja zwracajaca slowo o losowym indeksie z wczytanej bazy
+    std::string wylosujSlowo(){
 
         std::vector<std::string> slowa = zaladujSlowaZBazy();
-
-//        rand
-/*        srand(time(nullptr));
-        int losowa = rand() % slowa.size();*/
 
 /*        nowszy i podobno lepszy system generowania liczb pseudolosowych
         dla c++11*/
         long long int seed =
                 std::chrono::system_clock::now().time_since_epoch().count();
         std::default_random_engine generator (seed);
-        std::uniform_int_distribution<int> distribution(0, slowa.size());
-        int losowa = distribution(generator);
+        std::uniform_int_distribution<int> distribution(0, (int) slowa.size());
 
-        std::cout<<losowa<<std::endl<<slowa.size()<<std::endl;
-        std::string wylosowane = slowa.at(losowa);
-        return wylosowane;
+//        zwraca slowo o wylosowanym indeksie
+//        std::cout<<losowa<<std::endl<<slowa.size()<<std::endl;
+        return slowa.at(distribution(generator));
 }
 
     void graj() {
@@ -90,82 +95,58 @@ std::vector<std::string> zaladujSlowaZBazy(){
     do{
 //    deklaracja zmiennych
         bool odgadniete = false;
-        int liczba_dozwolonych_pomylek = 10;
+        int liczba_dozwolonych_pomylek = 12;
         std::vector<char> literySprawdzone;
 
-/*        losowanie slowa i zamaiana na vector vectorow charow z informacja
-        o stanie w drugim wymiarze*/
+/*        losowanie slowa konwersja na wektor ZnakowZeStanem*/
         std::string slowo = wylosujSlowo();
 
-        std::cout << slowo << std::endl;
-// tylko na chwile, aby sprawdzic poprawnosc funkcji losujacej
+/*        std::cout << slowo << std::endl;
+// tylko na chwile, aby sprawdzic poprawnosc funkcji losujacej*/
 
         std::vector<ZnakZeStanem> slowoZnaki;
-        for(auto znak : slowo){
-//            ZnakZeStanem doDodania = ZnakZeStanem(znak);
+
+/* Petla przypisujaca znaki ze slowa do utworzonego wektora ZnakowZeStanem
+ * emplace_back() w moim rozumieniu w przeciwieńswtie do push_back()
+ * nie kopiuje wpierw utworzonej zmiennej na koniec wektora,
+ * ale tam ja tworzy.
+ * Przy tworzeniu zmiennej uzywany jest konstruktor,
+ * ktory nadaje stanowi wartosc false, wiec ostatecznie otrzymujemy
+ * wektor nieodgadnietych liter. */
+        for(const auto & znak : slowo) {
             slowoZnaki.emplace_back(znak);
         }
-/*        std::vector<char> slowoZnaki(slowo.begin(), slowo.end());
-        std::vector<std::vector<char>> slowoZnakiOdgadniete;
-        for (auto litera : slowoZnaki) {
-            std::vector<char> doWstawienia = {litera, '0'};
-            slowoZnakiOdgadniete.push_back(doWstawienia);
-        }*/
 
-//
-        //Jakas petla zaporowa do obslugi gry
+        // Petla zaporowa do obslugi gry
         while (liczba_dozwolonych_pomylek > 0 && !odgadniete) {
 
 //           deklaracja zmiennych do sprawdzania wystepowania litery w slowie
             char litera;
 
 //            wypisanie slowa
-            for (auto literaSlowa : slowoZnaki) {
-/*                if (literaSlowa[1] == '1') {
-                    std::cout << literaSlowa[0] << ' ';
-                } else {
-                    std::cout << znakZakrycia << ' ';
-                }*/
+            for (auto & literaSlowa : slowoZnaki) {
                 std::cout<<literaSlowa.ustalZnakZeStanem()<<' ';
             }
 
 //          prosba o podanie litery i informacja o juz sprawdzonych literach
             std::cout << "\nLitery juz sprawdzone: ";
-            for (auto literaSprawdzona : literySprawdzone) {
+            for (const auto & literaSprawdzona : literySprawdzone) {
                 std::cout << literaSprawdzona << " ";
             }
             std::cout << "\nMozliwych pomylek: " << liczba_dozwolonych_pomylek
                       << "\nWprowadz litere: " << std::endl;
 
+//            chwilowo brak testowania poprawnosci wprowadzonego znaku
 /*          przyjecie litery i sprawdzenie, czy nie wprowadzono pustego znaku
             lub znaku spoza zakresu liter*/
-            do {
+//            do {
                 std::cin >> litera;
+                std::cout<<litera<<std::endl;
                 _tolower(litera);
-            } while (!(litera >= 'a' && litera <= 'z'));
+//            } while (!((litera >= 'a' && litera <= 'z') || litera == 'Ax5'));
 
 
-/*            konwersja wprowadzonej litery na mala,
-            poniewaz w bazie slowa skladaja sie z malych liter*/
 
-//            sprawdzenie
-/*            for(int i = 0; i < slowoZnaki.size(); i++){
-
-            }*/
-
-//            czy litera wystepuje
-/*            for(auto literaSlowa : slowoZnakiOdgadniete){
-                if(literaSlowa[0] == litera){
-                    literaSlowa[1] = 1;
-                    trafiona = true;
-                }
-            }*/
-/*            for (int i = 0; i < slowoZnakiOdgadniete.size(); i++) {
-                if (slowoZnakiOdgadniete[i][0] == litera) {
-                    slowoZnakiOdgadniete[i][1] = '1';
-                    trafiona = true;
-                }
-            }*/
             int liczbaTrafien = 0;
             for (auto & znak : slowoZnaki){
                 liczbaTrafien += znak.aktualizujStan(litera);
@@ -176,9 +157,12 @@ std::vector<std::string> zaladujSlowaZBazy(){
             liczby pomylek, ale sprawdza, czy jest jeszcze cos do zgadywania*/
             if (liczbaTrafien) {
                 odgadniete = true;
-                for (auto literaSlowa : slowoZnaki) {
+                for (auto & literaSlowa : slowoZnaki) {
                     if (!literaSlowa.zwrocStan()) {
                         odgadniete = false;
+/*                        wyjscie z petli, poniewaz juz wiadomo,
+                        ze slowo nie jest odgadniete*/
+                        break;
                     }
                 }
             }
@@ -187,23 +171,15 @@ std::vector<std::string> zaladujSlowaZBazy(){
             else {
                 liczba_dozwolonych_pomylek--;
             }
+
+//            dodajemy sprawdzona literke do listy jej podobnych
             literySprawdzone.push_back(litera);
 
 
         }
-/*        w petli powinno byc cos, co bedzie kontrolowalo stopien
- *        odgadniecia slowa
-        (
-        tu potrzeba kontroli wystepowania danej litery
-        [petla po tablicy, z porownaniem kazdej litery do podanej przez gracza]
-        obsluga podanych juz liter za pomoca vectora charow,
-        podstawianie "_" pod nieodgadniete litery,
-        byc moze przydatna bedzie tu petla dwuwymiarowa
-        w pierwszym wymiarze litery, w drugim informacja o zakryciu/odkryciu
-         ),
-        pozostala liczbe mozliwych pomylek,
 
-        po petli analiza wyniku -> wygrana/przegrana, odpowiedni komunikat,
+
+/*        po petli analiza wyniku -> wygrana/przegrana, odpowiedni komunikat,
         możliwosc ponownej gry*/
 
         if (odgadniete) {
@@ -216,6 +192,8 @@ std::vector<std::string> zaladujSlowaZBazy(){
         }
         std::cout << "Czy chcesz zagrac jeszcze raz?\nt -> tak\nn -> nie"
                      << std::endl;
+
+//        propozycja ponownej gry
         do {
             std::cin >> jeszczeRaz;
             _tolower(jeszczeRaz);
